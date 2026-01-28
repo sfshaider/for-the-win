@@ -1,0 +1,16 @@
+{
+  "name": "wild-center-voter",
+  "version": "1.0.0",
+  "description": "Automated voter for The Wild Center - USA TODAY 10BEST",
+  "main": "vote.js",
+  "scripts": {
+    "start": "node vote.js",
+    "vote-once": "node vote.js --once",
+    "vote-50": "node vote.js --votes=50",
+    "vote-100": "node vote.js --votes=100",
+    "vote-fixed": "node vote.js --no-random"
+  },
+  "dependencies": {
+    "playwright": "^1.50.0"
+  }
+}
