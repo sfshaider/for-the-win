@@ -1,7 +1,4 @@
-# Wild Center Voter
-
-Automated voter for The Wild Center - USA TODAY 10BEST "Best Science Museum" 2026.
-
+# 
 **Voting ends:** Monday, February 9 at noon ET
 
 ## Quick Start (Local)
