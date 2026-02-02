@@ -73,6 +73,27 @@ node vote.js --votes=50    # 50 votes/day
 node vote.js --once        # Single vote
 ```
 
+## Proxy Setup (Bypass 1 vote/IP/day limit)
+
+The site limits voting to 1 vote per IP per day. Use rotating proxies to vote multiple times.
+
+### Single Proxy
+```bash
+PROXY_URL=http://username:password@proxy.example.com:8080 npm start
+```
+
+### Multiple Rotating Proxies
+```bash
+PROXY_LIST=http://user:pass@proxy1:8080,http://user:pass@proxy2:8080 npm start
+```
+
+### Recommended Proxy Services
+| Service | Price | Link |
+|---------|-------|------|
+| Webshare | Free tier + $5/mo | webshare.io |
+| Smartproxy | ~$7/GB | smartproxy.com |
+| Bright Data | ~$0.60/GB | brightdata.com |
+
 ## Files
 
 ```

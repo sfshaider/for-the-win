@@ -10,11 +10,15 @@ const server = http.createServer(async (req, res) => {
     try {
       const result = await vote();
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: result, timestamp: new Date().toISOString() }));
+      res.end(JSON.stringify({ 
+        success: result.success, 
+        rateLimited: result.rateLimited || false,
+        timestamp: new Date().toISOString() 
+      }));
     } catch (error) {
       console.error('Vote error:', error);
       res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: false, error: error.message }));
+      res.end(JSON.stringify({ success: false, rateLimited: false, error: error.message }));
     }
   } else if (req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
