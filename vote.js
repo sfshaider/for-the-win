@@ -30,6 +30,7 @@ let stats = {
   startTime: null,
   intervals: [],
   proxyIndex: 0,
+  usedProxies: new Set(), // Track proxies that have successfully voted today
 };
 
 function getCurrentProxy() {
@@ -181,19 +182,11 @@ async function vote() {
       }, { timeout: 20000 });
     }
     
-    console.log('  Clicking Vote Now button...');
-    await voteButton.click();
-    
-    // Wait for vote to process
-    console.log('  Waiting for vote to process...');
-    await page.waitForTimeout(5000);
-    
-    // Check for rate limit message
-    const pageContent = await page.content();
-    const rateLimitMessage = await page.locator('text=/reached capacity|already voted|limit/i').first();
-    const hasRateLimit = await rateLimitMessage.isVisible().catch(() => false);
-    
-    if (hasRateLimit || pageContent.includes('reached capacity')) {
+    // Check for rate limit message BEFORE clicking (means already voted from this IP)
+    // Wait a moment for any existing rate limit message to appear
+    await page.waitForTimeout(1000);
+    const rateLimitVisible = await page.locator('text=/reached capacity/i').isVisible().catch(() => false);
+    if (rateLimitVisible) {
       stats.rateLimited++;
       console.log(`  ⚠️  Rate limited - already voted from this IP today`);
       
@@ -208,8 +201,40 @@ async function vote() {
       return { success: false, rateLimited: true };
     }
     
-    stats.successful++;
-    console.log(`  ✅ Vote submitted successfully!`);
+    // Check if we've already successfully voted with this proxy
+    const currentProxyKey = proxy || 'direct';
+    const alreadyUsedThisProxy = stats.usedProxies.has(currentProxyKey);
+    
+    console.log('  Clicking Vote Now button...');
+    await voteButton.click();
+    
+    console.log('  Waiting for vote to process...');
+    await page.waitForTimeout(5000);
+    
+    // Check for rate limit message
+    const postClickContent = await page.content();
+    const hasRateLimitAfter = postClickContent.includes('reached capacity');
+    
+    if (hasRateLimitAfter) {
+      if (alreadyUsedThisProxy) {
+        // We already voted with this proxy - this is a duplicate attempt
+        stats.rateLimited++;
+        console.log(`  ⚠️  Rate limited - already voted from this IP today`);
+      } else {
+        // First time seeing rate limit for this proxy = vote succeeded!
+        stats.successful++;
+        stats.usedProxies.add(currentProxyKey);
+        console.log(`  ✅ Vote submitted successfully!`);
+        console.log(`  ℹ️  This IP is now rate-limited for today`);
+      }
+      rotateProxy();
+    } else {
+      // No rate limit = success
+      stats.successful++;
+      stats.usedProxies.add(currentProxyKey);
+      console.log(`  ✅ Vote submitted successfully!`);
+    }
+    
     printStats();
     
     await browser.close();
